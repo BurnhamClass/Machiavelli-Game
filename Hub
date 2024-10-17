@@ -1,0 +1,152 @@
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+
+const allQuestions = [
+  // ... (previous 5 questions here)
+  {
+    question: "A neighboring state is experiencing internal strife. How do you respond?",
+    answers: [
+      { text: "Offer humanitarian aid and support", score: 0 },
+      { text: "Secretly support rebel factions to destabilize the state", score: 3 },
+      { text: "Publicly offer support while covertly exploiting the situation", score: 2 },
+      { text: "Strengthen your borders and remain neutral", score: 1 }
+    ]
+  },
+  {
+    question: "You have the opportunity to form an alliance with a stronger nation. What's your approach?",
+    answers: [
+      { text: "Form the alliance openly and honor all agreements", score: 0 },
+      { text: "Form the alliance but look for opportunities to betray them later", score: 3 },
+      { text: "Negotiate favorable terms before agreeing to the alliance", score: 1 },
+      { text: "Pretend to form the alliance while secretly allying with their enemies", score: 2 }
+    ]
+  },
+  {
+    question: "Your subjects are unhappy with recent policies. How do you handle this?",
+    answers: [
+      { text: "Listen to their concerns and adjust your policies", score: 0 },
+      { text: "Find a scapegoat to blame for the unpopular policies", score: 2 },
+      { text: "Distract them with a foreign threat or conflict", score: 3 },
+      { text: "Explain the necessity of the policies and ask for patience", score: 1 }
+    ]
+  },
+  // ... (add more questions as needed)
+];
+
+const MachiavellianTest = () => {
+  const [questions, setQuestions] = useState([]);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [score, setScore] = useState(0);
+  const [showResult, setShowResult] = useState(false);
+  const [showExplanation, setShowExplanation] = useState(false);
+  const [explanation, setExplanation] = useState("");
+
+  useEffect(() => {
+    // Randomly select 10 questions from the pool
+    const shuffled = [...allQuestions].sort(() => 0.5 - Math.random());
+    setQuestions(shuffled.slice(0, 10));
+  }, []);
+
+  const handleAnswer = (answerScore) => {
+    setScore(score + answerScore);
+    setShowExplanation(true);
+    setExplanation(getExplanation(answerScore));
+  };
+
+  const getExplanation = (score) => {
+    switch(score) {
+      case 0: return "This choice reflects a more idealistic, less Machiavellian approach.";
+      case 1: return "This decision shows some pragmatism, but still adheres to ethical considerations.";
+      case 2: return "This choice demonstrates Machiavellian thinking, prioritizing effectiveness over conventional morality.";
+      case 3: return "This is a highly Machiavellian choice, fully embracing the principles of 'The Prince'.";
+      default: return "";
+    }
+  };
+
+  const nextQuestion = () => {
+    if (currentQuestion < questions.length - 1) {
+      setCurrentQuestion(currentQuestion + 1);
+      setShowExplanation(false);
+    } else {
+      setShowResult(true);
+    }
+  };
+
+  const restartQuiz = () => {
+    const shuffled = [...allQuestions].sort(() => 0.5 - Math.random());
+    setQuestions(shuffled.slice(0, 10));
+    setCurrentQuestion(0);
+    setScore(0);
+    setShowResult(false);
+    setShowExplanation(false);
+  };
+
+  const getResultText = () => {
+    const maxScore = questions.length * 3;
+    const percentage = (score / maxScore) * 100;
+    if (percentage < 25) {
+      return "You are not very Machiavellian. You prefer honesty and straightforward dealings, which Machiavelli might consider naive in the world of politics.";
+    } else if (percentage < 50) {
+      return "You have some Machiavellian tendencies. You're pragmatic but still hold onto some idealistic principles.";
+    } else if (percentage < 75) {
+      return "You are quite Machiavellian. You understand the need for cunning and occasional deception in leadership.";
+    } else {
+      return "You are highly Machiavellian! You embody the principles of 'The Prince', valuing effectiveness and power over conventional morality.";
+    }
+  };
+
+  return (
+    <Card className="w-full max-w-2xl mx-auto mt-8">
+      <CardHeader>
+        <CardTitle>How Machiavellian Are You?</CardTitle>
+        <CardDescription>Based on principles from Machiavelli's "The Prince"</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {!showResult ? (
+          <>
+            <Progress value={(currentQuestion / questions.length) * 100} className="mb-4" />
+            <h2 className="text-xl font-bold mb-4">{questions[currentQuestion]?.question}</h2>
+            <div className="space-y-2">
+              {questions[currentQuestion]?.answers.map((answer, index) => (
+                <Button
+                  key={index}
+                  onClick={() => handleAnswer(answer.score)}
+                  className="w-full text-left justify-start"
+                  disabled={showExplanation}
+                >
+                  {answer.text}
+                </Button>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-4">Your Machiavellian Score: {score}/{questions.length * 3}</h2>
+            <p className="mb-4">{getResultText()}</p>
+            <Button onClick={restartQuiz}>Take the Test Again</Button>
+          </div>
+        )}
+      </CardContent>
+      <CardFooter className="text-sm text-gray-500">
+        Note: This test is for entertainment purposes and does not constitute a psychological assessment.
+      </CardFooter>
+
+      <AlertDialog open={showExplanation} onOpenChange={setShowExplanation}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Explanation</AlertDialogTitle>
+            <AlertDialogDescription>{explanation}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={nextQuestion}>Next Question</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </Card>
+  );
+};
+
+export default MachiavellianTest;
